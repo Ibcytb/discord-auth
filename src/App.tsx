@@ -14,7 +14,7 @@ interface IPInfo {
 
 // --- Discord OAuth 설정 ---
 // 본인의 Discord Developer Portal에서 Client ID를 가져와서 입력하세요.
-const CLIENT_ID = 'YOUR_CLIENT_ID'; 
+const CLIENT_ID = '1499652919010529341'; 
 // 배포된 사이트 주소를 Redirect URI로 등록해야 합니다. (예: https://your-site.com)
 const REDIRECT_URI = window.location.origin; 
 
