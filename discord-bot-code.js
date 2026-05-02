@@ -8,7 +8,7 @@ app.use(express.json());
 
 // --- 설정 ---
 const TOKEN = process.env.BOT_TOKEN; // Render 환경변수로 설정할 예정
-const MEMBER_ROLE_ID = '1499657972563836943'; 
+const MEMBER_ROLE_ID = '1457004890307039447'; 
 const PORT = process.env.PORT || 3000;
 
 const client = new Client({
