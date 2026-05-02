@@ -24,7 +24,7 @@ interface DiscordUser {
 const CLIENT_ID = '1499652919010529341'; 
 const REDIRECT_URI = window.location.origin; 
 const BOT_SERVER_URL = 'https://discord-auth-xdtr.onrender.com'; 
-const GUILD_ID = '1401207612963295432'; 
+const GUILD_ID = '1457002878286827533'; 
 // ==========================================
 
 const App: React.FC = () => {
