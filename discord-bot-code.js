@@ -9,7 +9,7 @@ app.use(express.json());
 // --- [설정값] ---
 const TOKEN = process.env.BOT_TOKEN; 
 const MEMBER_ROLE_ID = '1457004890307039447'; 
-const VERIFY_URL = 'https://ivyauth.netlify.app/';
+const VERIFY_URL = 'https://ivyauth1.netlify.app/';
 const GUILD_ID = '1457002878286827533'; // 서버 ID
 const PORT = process.env.PORT || 3000;
 
