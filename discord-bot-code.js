@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 import express from 'express';
 import cors from 'cors';
 
@@ -6,9 +6,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- 설정 ---
-const TOKEN = process.env.BOT_TOKEN; // Render 환경변수로 설정할 예정
+// --- [설정값] ---
+const TOKEN = process.env.BOT_TOKEN; 
 const MEMBER_ROLE_ID = '1457004890307039447'; 
+const VERIFY_URL = 'https://ivyauth.netlify.app/';
+const GUILD_ID = '1457002878286827533'; // 서버 ID
 const PORT = process.env.PORT || 3000;
 
 const client = new Client({
@@ -16,38 +18,69 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.MessageContent, // 반드시 켜져 있어야 함
   ],
 });
 
-// 웹사이트에서 인증 성공 시 호출할 엔드포인트
-app.get('/verify-success', async (req, res) => {
-  const { userId, guildId } = req.query;
+client.on('ready', () => {
+  console.log(`🚀 봇 온라인: ${client.user.tag}`);
+  console.log(`인텐트 설정: Guilds, GuildMembers, GuildMessages, MessageContent`);
+});
 
-  try {
-    const guild = await client.guilds.fetch(guildId);
-    const member = await guild.members.fetch(userId);
-    const role = guild.roles.cache.get(MEMBER_ROLE_ID);
+// 메시지 수신 테스트
+client.on('messageCreate', async (message) => {
+  // 1. 봇이 읽은 모든 메시지를 로그에 출력 (테스트용)
+  console.log(`[메시지 수신] 작성자: ${message.author.tag}, 내용: ${message.content}`);
 
-    if (role) {
-      await member.roles.add(role);
-      console.log(`✅ 역할 부여 성공: ${member.user.tag}`);
-      return res.send('SUCCESS');
+  if (message.author.bot) return; // 봇 메시지 무시
+
+  if (message.content === '!setup') {
+    console.log('!setup 명령어 인식됨');
+    
+    if (!message.member.permissions.has('Administrator')) {
+      console.log('권한 부족: 관리자가 아님');
+      return message.reply('관리자 권한이 필요합니다.');
     }
-    res.status(404).send('ROLE NOT FOUND');
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).send('SERVER ERROR');
+
+    const embed = new EmbedBuilder()
+      .setTitle('🛡️ 서버 보안 인증')
+      .setDescription('최근 발생하고 있는 레이드 및 테러 방지를 위해 보안 인증을 실시합니다.\n아래 버튼을 눌러 **한국 아이피(KR IP) 인증**을 완료해주세요.')
+      .setColor('#5865F2');
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel('인증 시작하기')
+        .setURL(VERIFY_URL)
+        .setStyle(ButtonStyle.Link)
+    );
+
+    try {
+      await message.channel.send({ embeds: [embed], components: [row] });
+      console.log('✅ 인증 메시지 전송 성공');
+      await message.delete();
+    } catch (err) {
+      console.error('❌ 메시지 전송 실패:', err);
+    }
   }
 });
 
-// Render에서 서버가 살아있는지 확인하는 용도
-app.get('/', (req, res) => res.send('Bot is running!'));
-
-client.once('ready', () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
-  // 봇이 로그인된 후 서버 시작
-  app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+// 역할 부여 API
+app.get('/verify-success', async (req, res) => {
+  const { userId } = req.query;
+  try {
+    const guild = await client.guilds.fetch(GUILD_ID);
+    const member = await guild.members.fetch(userId);
+    const role = guild.roles.cache.get(MEMBER_ROLE_ID);
+    if (role) {
+      await member.roles.add(role);
+      return res.send('OK');
+    }
+    res.status(404).send('Role Not Found');
+  } catch (e) {
+    res.status(500).send('Error');
+  }
 });
 
+app.get('/', (req, res) => res.send('Bot is Running'));
+app.listen(PORT, () => console.log(`서버 포트 ${PORT} 가동 중`));
 client.login(TOKEN);
